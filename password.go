@@ -18,6 +18,16 @@ var ErrSamePassword = errors.New("new password cannot be the same as old passwor
 // ErrBlankPassword is returned when new password is blank.
 var ErrBlankPassword = errors.New("new password cannot be blank")
 
+// GenerateFromPassword returns the bcrypt hash of the password.
+func GenerateFromPassword(password string) (string, error) {
+	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
+	if err != nil {
+		return "", err
+	}
+
+	return string(hashed), nil
+}
+
 // Compare compares passwords equivalent.
 // If hashed is true, p1 must be a bcrypt hashed password.
 func Compare(p1, p2 string, hashed bool) (bool, error) {
@@ -56,12 +66,7 @@ func Change(p1, p2, n1, n2 string, hashed bool) (string, error) {
 		err = ErrBlankPassword
 
 	default:
-		password, err := bcrypt.GenerateFromPassword([]byte(n1), bcrypt.MinCost)
-		if err != nil {
-			return "", err
-		}
-
-		return string(password), nil
+		return GenerateFromPassword(n1)
 	}
 
 	return "", err

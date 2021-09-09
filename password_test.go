@@ -4,14 +4,16 @@ import "testing"
 
 func TestCompare(t *testing.T) {
 	var password = "password"
-	var hashed = "$2a$04$T6zSWlGSRxSuA.BgTvxmmuOm3AyECdxg6/Tl3l9PouBksxQhek0qK"
+	hashed, err := GenerateFromPassword(password)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	ok, _ := Compare(password, password, false)
 	if !ok {
 		t.Errorf("expected true; got %v", ok)
 	}
-	_, err := Compare(password, password, true)
-	if err == nil {
+	if _, err := Compare(password, password, true); err == nil {
 		t.Error("expected non-nil err; got nil")
 	}
 	ok, _ = Compare(hashed, password, false)
