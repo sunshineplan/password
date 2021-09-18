@@ -2,4 +2,4 @@ module github.com/sunshineplan/password
 
 go 1.16
 
-require golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
+require golang.org/x/crypto v0.0.0-20210915214749-c084706c2272

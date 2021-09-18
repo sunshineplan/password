@@ -1,6 +1,11 @@
 package password
 
-import "testing"
+import (
+	"crypto/rand"
+	"crypto/rsa"
+	"encoding/base64"
+	"testing"
+)
 
 func TestCompare(t *testing.T) {
 	var password = "password"
@@ -60,5 +65,43 @@ func TestChange(t *testing.T) {
 
 	if _, err := Change(oldPassword, oldPassword, oldPassword, newPassword, false); err != ErrConfirmPasswordNotMatch {
 		t.Errorf("expected ErrConfirmPasswordNotMatch; got %v", err)
+	}
+}
+
+func TestRSA(t *testing.T) {
+	priv, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var password = "password"
+	ciphertext, err := rsa.EncryptPKCS1v15(rand.Reader, &priv.PublicKey, []byte(password))
+	if err != nil {
+		t.Fatal(err)
+	}
+	encrypted := base64.StdEncoding.EncodeToString(ciphertext)
+	hashed, err := GenerateFromPassword(password)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ok, _ := CompareRSA(password, encrypted, false, priv)
+	if !ok {
+		t.Errorf("expected true; got %v", ok)
+	}
+	if _, err := CompareRSA(password, encrypted, true, priv); err == nil {
+		t.Error("expected non-nil err; got nil")
+	}
+	ok, _ = CompareRSA(hashed, encrypted, false, priv)
+	if !ok {
+		t.Errorf("expected true; got %v", ok)
+	}
+	ok, _ = CompareRSA(hashed, encrypted, true, priv)
+	if !ok {
+		t.Errorf("expected true; got %v", ok)
+	}
+	ok, _ = CompareRSA(hashed, "wrongpassword", true, priv)
+	if ok {
+		t.Errorf("expected false; got %v", ok)
 	}
 }
