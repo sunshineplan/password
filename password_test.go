@@ -107,7 +107,7 @@ func TestRSA(t *testing.T) {
 	}
 }
 
-func TestRetry(t *testing.T) {
+func TestMaxPasswordAttempts(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		_, err := Compare("test1", "password", "wrongpassword", false)
 		if !errors.Is(err, ErrIncorrectPassword) {
