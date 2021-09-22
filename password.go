@@ -133,6 +133,27 @@ func compare(info, hashedPassword, password string, hashed bool, priv *rsa.Priva
 func change(info, hashedPassword, password, new1, new2 string, hashed bool, priv *rsa.PrivateKey) (string, error) {
 	password, ok, err := compare(info, hashedPassword, password, hashed, priv)
 	if ok {
+		if priv != nil {
+			ciphertext, err := base64.StdEncoding.DecodeString(new1)
+			if err != nil {
+				return "", err
+			}
+			plaintext, err := rsa.DecryptPKCS1v15(rand.Reader, priv, ciphertext)
+			if err != nil {
+				return "", err
+			}
+			new1 = string(plaintext)
+
+			ciphertext, err = base64.StdEncoding.DecodeString(new2)
+			if err != nil {
+				return "", err
+			}
+			plaintext, err = rsa.DecryptPKCS1v15(rand.Reader, priv, ciphertext)
+			if err != nil {
+				return "", err
+			}
+			new2 = string(plaintext)
+		}
 		switch {
 		case new1 != new2:
 			err = ErrConfirmPasswordNotMatch
@@ -175,7 +196,7 @@ func CompareRSA(info, hashedPassword, password string, hashed bool, priv *rsa.Pr
 }
 
 // ChangeRSA vailds and compares passwords, info is used to record password attempts,
-// password must be a base64 encoded string using RSA.
+// password, new1, new2 must be a base64 encoded string using RSA.
 // If hashed is true, hashedPassword must be a bcrypt hashed password.
 // Return a bcrypt hashed password on success.
 func ChangeRSA(info, hashedPassword, password, new1, new2 string, hashed bool, priv *rsa.PrivateKey) (string, error) {

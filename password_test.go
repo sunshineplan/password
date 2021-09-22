@@ -105,6 +105,31 @@ func TestRSA(t *testing.T) {
 	if ok {
 		t.Errorf("expected false; got %v", ok)
 	}
+
+	var newPassword = "newPassword"
+	ciphertext, err = rsa.EncryptPKCS1v15(rand.Reader, &priv.PublicKey, []byte(newPassword))
+	if err != nil {
+		t.Fatal(err)
+	}
+	new1 := base64.StdEncoding.EncodeToString(ciphertext)
+	ciphertext, err = rsa.EncryptPKCS1v15(rand.Reader, &priv.PublicKey, []byte(newPassword))
+	if err != nil {
+		t.Fatal(err)
+	}
+	new2 := base64.StdEncoding.EncodeToString(ciphertext)
+	ciphertext, err = rsa.EncryptPKCS1v15(rand.Reader, &priv.PublicKey, []byte(newPassword))
+	if err != nil {
+		t.Fatal(err)
+	}
+	new3 := base64.StdEncoding.EncodeToString(ciphertext)
+
+	hashed, err = ChangeRSA("", password, encrypted, new1, new2, false, priv)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if ok, _ := CompareRSA("", hashed, new3, false, priv); !ok {
+		t.Errorf("expected true; got %v", ok)
+	}
 }
 
 func TestMaxPasswordAttempts(t *testing.T) {
