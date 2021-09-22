@@ -58,15 +58,6 @@ var ErrBlankPassword = errors.New("new password cannot be blank")
 // ErrNoPrivateKey is returned when new private key is nil.
 var ErrNoPrivateKey = errors.New("no private key provided")
 
-func isMaxAttempts(info string) bool {
-	v, ok := c.Get(info)
-	if !ok || v.(int) < maxAttempts {
-		return false
-	}
-
-	return true
-}
-
 func recordIncorrectPassword(info string) error {
 	var n int
 
@@ -79,6 +70,16 @@ func recordIncorrectPassword(info string) error {
 	c.Set(info, n, duration, nil)
 
 	return &incorrectPasswordError{n}
+}
+
+// IsMaxAttempts checks info exceeded maximum password attempts or not.
+func IsMaxAttempts(info string) bool {
+	v, ok := c.Get(info)
+	if !ok || v.(int) < maxAttempts {
+		return false
+	}
+
+	return true
 }
 
 // Clear resets info's incorrect password count.
@@ -97,7 +98,7 @@ func GenerateFromPassword(password string) (string, error) {
 }
 
 func compare(info, hashedPassword, password string, hashed bool, priv *rsa.PrivateKey) (string, bool, error) {
-	if isMaxAttempts(info) {
+	if IsMaxAttempts(info) {
 		return "", false, &maxPasswordAttemptsError{}
 	}
 
