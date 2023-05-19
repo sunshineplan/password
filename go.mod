@@ -3,6 +3,6 @@ module github.com/sunshineplan/password
 go 1.16
 
 require (
-	github.com/sunshineplan/utils v0.1.40
+	github.com/sunshineplan/utils v0.1.42
 	golang.org/x/crypto v0.9.0
 )
