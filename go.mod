@@ -4,5 +4,5 @@ go 1.16
 
 require (
 	github.com/sunshineplan/utils v0.1.43
-	golang.org/x/crypto v0.9.0
+	golang.org/x/crypto v0.10.0
 )
