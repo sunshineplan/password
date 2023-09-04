@@ -1,5 +1,5 @@
-github.com/sunshineplan/utils v0.1.46 h1:m43TSqYY0K+n5rY93+7Hr1UCWvtWQYve31nB7G5Us9g=
-github.com/sunshineplan/utils v0.1.46/go.mod h1:7zhDUGgKo2FMFzs7j6IL7B/lh3BRuE7rb7R7IgGOAfc=
+github.com/sunshineplan/utils v0.1.48 h1:vyb8m+I6qTMmtcwAE3Q60VqOT+0W/Mj8ruiguuJvOb8=
+github.com/sunshineplan/utils v0.1.48/go.mod h1:7zhDUGgKo2FMFzs7j6IL7B/lh3BRuE7rb7R7IgGOAfc=
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/crypto v0.0.0-20210921155107-089bfa567519/go.mod h1:GvvjBRRGRdwPK5ydBHafDWAxML/pGHZbMvKqRZ5+Abc=
