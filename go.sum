@@ -1,4 +1,4 @@
-github.com/sunshineplan/utils v0.1.59 h1:c0bZslNufrW5AhgjRIKy4njjnmMWXJoNLlppKIzLjyg=
-github.com/sunshineplan/utils v0.1.59/go.mod h1:7zhDUGgKo2FMFzs7j6IL7B/lh3BRuE7rb7R7IgGOAfc=
+github.com/sunshineplan/utils v0.1.60 h1:+hRzu+1dCd3PyKTHWPCE0Huq0/1woc5Qb4UnQRW3KtI=
+github.com/sunshineplan/utils v0.1.60/go.mod h1:7zhDUGgKo2FMFzs7j6IL7B/lh3BRuE7rb7R7IgGOAfc=
 golang.org/x/crypto v0.17.0 h1:r8bRNjWL3GshPW3gkd+RpvzWrZAwPS49OmTGZ/uhM4k=
 golang.org/x/crypto v0.17.0/go.mod h1:gCAAfMLgwOJRpTjQ2zCCt2OcSfYMTeZVSRtQlPC7Nq4=
