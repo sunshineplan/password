@@ -39,6 +39,11 @@ func TestRSA(t *testing.T) {
 		t.Fatal(err)
 	}
 	encrypted := base64.StdEncoding.EncodeToString(ciphertext)
+	if s, err := DecryptPKCS1v15(priv, encrypted); err != nil {
+		t.Fatal(err)
+	} else if s != password {
+		t.Fatalf("expected password; got %s", s)
+	}
 	hashed, err := HashPassword(password)
 	if err != nil {
 		t.Fatal(err)
