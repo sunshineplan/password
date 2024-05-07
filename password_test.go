@@ -6,66 +6,24 @@ import (
 	"encoding/base64"
 	"errors"
 	"testing"
+	"time"
 )
 
 func TestCompare(t *testing.T) {
 	var password = "password"
-	hashed, err := GenerateFromPassword(password)
+	hashed, err := HashPassword(password)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	ok, _ := Compare("", password, password, false)
-	if !ok {
-		t.Errorf("expected true; got %v", ok)
+	if err := Compare("", password, password); err != nil {
+		t.Error(err)
 	}
-	if _, err := Compare("", password, password, true); err == nil {
+	if err := CompareHashAndPassword("", hashed, password); err != nil {
+		t.Error(err)
+	}
+	if err := CompareHashAndPassword("", hashed, "wrongpassword"); err == nil {
 		t.Error("expected non-nil err; got nil")
-	}
-	ok, _ = Compare("", hashed, password, false)
-	if !ok {
-		t.Errorf("expected true; got %v", ok)
-	}
-	ok, _ = Compare("", hashed, password, true)
-	if !ok {
-		t.Errorf("expected true; got %v", ok)
-	}
-	ok, _ = Compare("", hashed, "wrongpassword", true)
-	if ok {
-		t.Errorf("expected false; got %v", ok)
-	}
-}
-
-func TestChange(t *testing.T) {
-	var oldPassword = "old"
-	var newPassword = "new"
-
-	password, err := Change("", oldPassword, oldPassword, newPassword, newPassword, false)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if ok, _ := Compare("", password, newPassword, true); !ok {
-		t.Errorf("expected true; got %v", ok)
-	}
-
-	if _, err := Change("", oldPassword, "wrongpassword", newPassword, newPassword, false); !errors.Is(err, ErrIncorrectPassword) {
-		t.Errorf("expected ErrIncorrectPassword; got %v", err)
-	}
-
-	if _, err := Change("", oldPassword, oldPassword, newPassword, "wrongpassword", false); err != ErrConfirmPasswordNotMatch {
-		t.Errorf("expected ErrConfirmPasswordNotMatch; got %v", err)
-	}
-
-	if _, err := Change("", oldPassword, oldPassword, oldPassword, oldPassword, false); err != ErrSamePassword {
-		t.Errorf("expected ErrSamePassword; got %v", err)
-	}
-
-	if _, err := Change("", oldPassword, oldPassword, "", "", false); err != ErrBlankPassword {
-		t.Errorf("expected ErrBlankPassword; got %v", err)
-	}
-
-	if _, err := Change("", oldPassword, oldPassword, oldPassword, newPassword, false); err != ErrConfirmPasswordNotMatch {
-		t.Errorf("expected ErrConfirmPasswordNotMatch; got %v", err)
 	}
 }
 
@@ -74,88 +32,62 @@ func TestRSA(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
+	p := New(24*time.Hour, 5, priv)
 	var password = "password"
 	ciphertext, err := rsa.EncryptPKCS1v15(rand.Reader, &priv.PublicKey, []byte(password))
 	if err != nil {
 		t.Fatal(err)
 	}
 	encrypted := base64.StdEncoding.EncodeToString(ciphertext)
-	hashed, err := GenerateFromPassword(password)
+	hashed, err := HashPassword(password)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	ok, _ := CompareRSA("", password, encrypted, false, priv)
-	if !ok {
-		t.Errorf("expected true; got %v", ok)
+	if err := p.Compare("", password, encrypted); err != nil {
+		t.Error(err)
 	}
-	if _, err := CompareRSA("", password, encrypted, true, priv); err == nil {
+	if err := p.CompareHashAndPassword("", password, encrypted); err == nil {
 		t.Error("expected non-nil err; got nil")
 	}
-	ok, _ = CompareRSA("", hashed, encrypted, false, priv)
-	if !ok {
-		t.Errorf("expected true; got %v", ok)
+	if err := p.Compare("", hashed, encrypted); err == nil {
+		t.Error("expected non-nil err; got nil")
 	}
-	ok, _ = CompareRSA("", hashed, encrypted, true, priv)
-	if !ok {
-		t.Errorf("expected true; got %v", ok)
+	if err := p.CompareHashAndPassword("", hashed, encrypted); err != nil {
+		t.Error(err)
 	}
-	ok, _ = CompareRSA("", hashed, "wrongpassword", true, priv)
-	if ok {
-		t.Errorf("expected false; got %v", ok)
-	}
-
-	var newPassword = "newPassword"
-	ciphertext, err = rsa.EncryptPKCS1v15(rand.Reader, &priv.PublicKey, []byte(newPassword))
-	if err != nil {
-		t.Fatal(err)
-	}
-	new1 := base64.StdEncoding.EncodeToString(ciphertext)
-	ciphertext, err = rsa.EncryptPKCS1v15(rand.Reader, &priv.PublicKey, []byte(newPassword))
-	if err != nil {
-		t.Fatal(err)
-	}
-	new2 := base64.StdEncoding.EncodeToString(ciphertext)
-	ciphertext, err = rsa.EncryptPKCS1v15(rand.Reader, &priv.PublicKey, []byte(newPassword))
-	if err != nil {
-		t.Fatal(err)
-	}
-	new3 := base64.StdEncoding.EncodeToString(ciphertext)
-
-	hashed, err = ChangeRSA("", password, encrypted, new1, new2, false, priv)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if ok, _ := CompareRSA("", hashed, new3, false, priv); !ok {
-		t.Errorf("expected true; got %v", ok)
+	if err := p.CompareHashAndPassword("", hashed, "wrongpassword"); err == nil {
+		t.Error("expected non-nil err; got nil")
 	}
 }
 
 func TestMaxPasswordAttempts(t *testing.T) {
+	p := New(24*time.Hour, 5, nil)
+	type info struct {
+		id   string
+		info any
+	}
 	for i := 0; i < 5; i++ {
-		_, err := Compare("test1", "password", "wrongpassword", false)
-		if !errors.Is(err, ErrIncorrectPassword) {
+		if err := p.Compare(info{"test1", nil}, "password", "wrongpassword"); !errors.Is(err, ErrIncorrectPassword) {
 			t.Fatalf("expected ErrIncorrectPassword; got %v", err)
 		}
 	}
-	_, err := Compare("test1", "password", "password", false)
-	if !errors.Is(err, ErrMaxPasswordAttempts) {
+	if err := p.Compare(info{"test1", nil}, "password", "password"); !errors.Is(err, ErrMaxPasswordAttempts) {
 		t.Errorf("expected ErrMaxPasswordAttempts; got %v", err)
 	}
 
-	_, err = Compare("test2", "password", "wrongpassword", false)
-	if !errors.Is(err, ErrIncorrectPassword) {
+	if err := p.Compare(info{"test1", "test2"}, "password", "wrongpassword"); !errors.Is(err, ErrIncorrectPassword) {
 		t.Fatalf("expected ErrIncorrectPassword; got %v", err)
 	}
-	ok, _ := Compare("test2", "password", "password", false)
-	if !ok {
-		t.Fatalf("expected true; got %v", ok)
+	if err := p.Compare(info{"test1", "test2"}, "password", "password"); err != nil {
+		t.Fatal(err)
 	}
 	for i := 0; i < 5; i++ {
-		_, err := Compare("test2", "password", "wrongpassword", false)
-		if !errors.Is(err, ErrIncorrectPassword) {
+		if err := p.Compare(info{"test1", "test2"}, "password", "wrongpassword"); !errors.Is(err, ErrIncorrectPassword) {
 			t.Fatalf("expected ErrIncorrectPassword; got %v", err)
 		}
+	}
+	if err := p.Compare(info{"test1", "test2"}, "password", "password"); !errors.Is(err, ErrMaxPasswordAttempts) {
+		t.Errorf("expected ErrMaxPasswordAttempts; got %v", err)
 	}
 }
