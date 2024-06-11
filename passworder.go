@@ -9,14 +9,14 @@ import (
 )
 
 type Passworder struct {
-	cache *cache.Cache
+	cache *cache.Cache[any, int]
 	dur   time.Duration
 	max   int
 	key   *rsa.PrivateKey
 }
 
 func New(d time.Duration, n int, key *rsa.PrivateKey) *Passworder {
-	return &Passworder{cache.New(true), d, n, key}
+	return &Passworder{cache.New[any, int](true), d, n, key}
 }
 
 func (p *Passworder) SetDuration(d time.Duration) { p.dur = d }
@@ -28,7 +28,7 @@ func (p *Passworder) recordIncorrect(id any) error {
 	if v, ok := p.cache.Get(id); !ok {
 		n = 1
 	} else {
-		n = v.(int) + 1
+		n = v + 1
 	}
 	p.cache.Set(id, n, p.dur, nil)
 	return incorrectPasswordError(n)
@@ -36,7 +36,7 @@ func (p *Passworder) recordIncorrect(id any) error {
 
 func (p *Passworder) IsMaxAttempts(id any) bool {
 	v, ok := p.cache.Get(id)
-	return ok && v.(int) >= p.max
+	return ok && v >= p.max
 }
 
 func (p *Passworder) Reset(id any) {
