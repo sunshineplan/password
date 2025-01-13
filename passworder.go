@@ -60,8 +60,8 @@ func (p *Passworder) compare(id any, key, password string, hash bool) (string, e
 	}
 	if hash {
 		if err = bcrypt.CompareHashAndPassword([]byte(key), []byte(password)); err != nil {
-			if e := p.recordIncorrect(id); err == bcrypt.ErrMismatchedHashAndPassword {
-				err = e
+			if err == bcrypt.ErrMismatchedHashAndPassword {
+				return "", p.recordIncorrect(id)
 			}
 			return "", err
 		}
