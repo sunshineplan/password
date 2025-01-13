@@ -22,8 +22,22 @@ func TestCompare(t *testing.T) {
 	if err := CompareHashAndPassword("", hashed, password); err != nil {
 		t.Error(err)
 	}
-	if err := CompareHashAndPassword("", hashed, "wrongpassword"); err == nil {
+	if v, _ := std.cache.Get(""); v != 0 {
+		t.Errorf("expected no error; got %d", v)
+	}
+	err = CompareHashAndPassword("", hashed, "wrongpassword")
+	if err == nil {
 		t.Error("expected non-nil err; got nil")
+	}
+	if v, _ := std.cache.Get(""); v != 1 {
+		t.Errorf("expected one error; got %d", v)
+	}
+	err = CompareHashAndPassword("", "bad hash", password)
+	if err == nil {
+		t.Error("expected non-nil err; got nil")
+	}
+	if v, _ := std.cache.Get(""); v != 1 {
+		t.Errorf("expected one error; got %d", v)
 	}
 }
 
