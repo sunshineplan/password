@@ -23,15 +23,16 @@ func (p *Passworder) SetDuration(d time.Duration) { p.dur = d }
 func (p *Passworder) SetMaxAttempts(n int)        { p.max = n }
 func (p *Passworder) SetKey(key *rsa.PrivateKey)  { p.key = key }
 
-func (p *Passworder) recordIncorrect(id any) error {
-	var n int
-	if v, ok := p.cache.Get(id); !ok {
-		n = 1
-	} else {
-		n = v + 1
+func (p *Passworder) record(id any, n int) int {
+	if v, ok := p.cache.Get(id); ok {
+		n += v
 	}
 	p.cache.Set(id, n, p.dur, nil)
-	return incorrectPasswordError(n)
+	return n
+}
+
+func (p *Passworder) recordIncorrect(id any) error {
+	return incorrectPasswordError(p.record(id, 1))
 }
 
 func (p *Passworder) IsMaxAttempts(id any) bool {
@@ -55,6 +56,7 @@ func (p *Passworder) compare(id any, key, password string, hash bool) (string, e
 	if p.key != nil {
 		password, err = p.DecryptPKCS1v15(password)
 		if err != nil {
+			p.record(id, p.max)
 			return "", err
 		}
 	}
