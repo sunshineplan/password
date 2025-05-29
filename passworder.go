@@ -9,14 +9,14 @@ import (
 )
 
 type Passworder struct {
-	cache *cache.Cache[any, int]
+	cache *cache.CacheWithRenew[any, int]
 	dur   time.Duration
 	max   int
 	key   *rsa.PrivateKey
 }
 
 func New(d time.Duration, n int, key *rsa.PrivateKey) *Passworder {
-	return &Passworder{cache.New[any, int](true), d, n, key}
+	return &Passworder{cache.NewWithRenew[any, int](true), d, n, key}
 }
 
 func (p *Passworder) SetDuration(d time.Duration) { p.dur = d }
