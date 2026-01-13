@@ -4,5 +4,5 @@ go 1.25
 
 require (
 	github.com/sunshineplan/utils v0.1.83
-	golang.org/x/crypto v0.46.0
+	golang.org/x/crypto v0.47.0
 )
